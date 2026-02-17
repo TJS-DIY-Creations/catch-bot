@@ -12,14 +12,8 @@
 #define OLED_RESET -1
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-
-
-
-
-
-
-
-int redPin = 11;
+// define rgb led pins
+int redPin = 11; 
 int greenPin = 10;
 int bluePin = 9;
 
@@ -68,48 +62,27 @@ int currentIndex = 0;
 int nextIndex = 1;
 int stepCount = 0;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 float version = 1.1;
 
-// ============================================================
-// USER SETTINGS
-// ============================================================
-const byte sens1 = 2;
+const byte sens1 = 2;//sensor pins
 const byte sens2 = 3;
 
-const float distanceMeters = 0.02815;  //in cad 0.02815
-const unsigned long debounceUS = 50;
+const float distanceMeters = 0.02815;  //distance between sensors, in cad 0.02815
+const unsigned long debounceUS = 50; // debounce to prevent false trigger
 
-const int stepsPerCM = 50;
-float h = 0.825;
-float g = 9.81;
+//variables
+const int stepsPerCM = 50; // steps to move 1 cm
+float h = 0.825; //hight of desk
+float g = 9.81; // gravity
 
-// ============================================================
-// A4988
-// ============================================================
+// A4988 pins
 #define STEP_PIN 4
 #define DIR_PIN 5
 #define ENABLE_PIN 6
 
-AccelStepper stepper(AccelStepper::DRIVER, STEP_PIN, DIR_PIN);
+AccelStepper stepper(AccelStepper::DRIVER, STEP_PIN, DIR_PIN); //defines stepper driver pins
 
-// ============================================================
 // ISR RESULTS
-// ============================================================
 volatile unsigned long tStart = 0;
 volatile unsigned long tStop = 0;
 volatile bool measurementReady = false;
@@ -137,9 +110,7 @@ SystemState currentState = ARMED;
 unsigned long moveCompleteMillis = 0;
 const unsigned long returnDelay = 2000;
 
-// ============================================================
 // INTERRUPTS
-// ============================================================
 void sens1ISR() {
   static unsigned long last = 0;
   unsigned long now = micros();
@@ -161,9 +132,9 @@ void sens2ISR() {
   last = now;
 }
 
-// ============================================================
+
 // SETUP
-// ============================================================
+
 void setup() {
   Serial.begin(115200);
   Wire.begin();
@@ -193,9 +164,6 @@ void setup() {
   drawDisplay();  // initial screen
 }
 
-// ============================================================
-// LOOP
-// ============================================================
 void loop() {
   stepper.run();
 
@@ -260,11 +228,12 @@ void loop() {
   }
   unsigned long currentMillis = millis();
 
-  if (currentMillis - previousMillis >= fadeInterval) {
+  if (currentMillis - previousMillis >= fadeInterval) { 
     previousMillis = currentMillis;
 
     float t = (float)stepCount / fadeSteps;
 
+    // changes the color of the rgb leds
     int r = colors[currentIndex].r + (colors[nextIndex].r - colors[currentIndex].r) * t;
     int g = colors[currentIndex].g + (colors[nextIndex].g - colors[currentIndex].g) * t;
     int b = colors[currentIndex].b + (colors[nextIndex].b - colors[currentIndex].b) * t;
@@ -281,46 +250,43 @@ void loop() {
   }
 }
 
-// ============================================================
-// DISPLAY
-// ============================================================
-void drawDisplay() {
-  display.clearDisplay();
+void drawDisplay() { //updates the display
+  display.clearDisplay(); // clears display
 
-  display.setTextColor(WHITE);
+  display.setTextColor(WHITE); // sets text color but doesnt really work due to display hardware limitations
 
   // version
-  display.setTextSize(1);
-  display.setCursor(0, 0);
-  display.print("v ");
-  display.println(version, 1);
+  display.setTextSize(1); // change text size
+  display.setCursor(0, 0); // move cursor
+  display.print("v "); // prints v for "version"
+  display.println(version, 1); // prints code version next to v
 
   // speeds
-  display.setTextSize(2);
-  display.setCursor(0, 16);
-  display.print(speed_mps, 1);
-  display.print("m/s");
+  display.setTextSize(2); // sets to bigger text size
+  display.setCursor(0, 16); // moves cursor
+  display.print(speed_mps, 1); // then prints the m/s next to it 
+  display.print("m/s"); // prints m/s units
 
-  display.setCursor(0, 36);
-  display.print(speed_fps, 0);
-  display.print("fps");
+  display.setCursor(0, 36); // moves cursor again
+  display.print(speed_fps, 0); // prints speed in foot per second, why did i add this??????
+  display.print("fps"); // prints units
 
   // steps
-  display.setTextSize(1);
-  display.setCursor(80, 0);
-  display.print("Steps:");
-  display.setCursor(80, 10);
-  display.print(targetSteps);
+  display.setTextSize(1); // changes text size back
+  display.setCursor(80, 0); //moves cursor
+  display.print("Steps:"); // label
+  display.setCursor(80, 10); // moves cursor again
+  display.print(targetSteps); // prints steps that the motor moved 
 
   // state
-  display.setCursor(80, 25);
-  display.print("State:");
-  display.setCursor(80, 35);
-  display.print(currentState);
+  display.setCursor(80, 25); //moves cursor again
+  display.print("State:"); // prints label
+  display.setCursor(80, 35); // moves cursor 
+  display.print(currentState); // prints state
 
-  display.display();
+  display.display(); // send all above to display 
 }
-void setColor(int redValue, int greenValue, int blueValue) {
+void setColor(int redValue, int greenValue, int blueValue) { // rgb code
   analogWrite(redPin, redValue);
   analogWrite(greenPin, greenValue);
   analogWrite(bluePin, blueValue);
